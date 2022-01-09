@@ -1,0 +1,9 @@
+version: '3'
+services:
+  bot:
+    build: .
+    restart: unless-stopped
+    env_file:
+    - secrets.env
+    volumes:
+    - ./src:/usr/src/app
