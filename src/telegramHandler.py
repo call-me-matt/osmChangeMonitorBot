@@ -29,7 +29,7 @@ logger = logging.getLogger("telegram-handler")
 class telegramHandler (threading.Thread):
 
     def register(self, update, context):
-        context.bot.send_message(chat_id=update.message.chat_id, text="Hello, " + update.message.from_user.first_name + ". I can request the number of changes for OSM users. Just send me a message saying /stats. Add OSM users by writing a /follow message, or remove them by writing /unfollow")
+        context.bot.send_message(chat_id=update.message.chat_id, text="Hello, " + update.message.from_user.first_name + ". I can request the number of changes for OSM users. Just send me a message saying /report. Add OSM users by writing a /follow message, or remove them with /unfollow")
         databaseHandler.addUser(update.message.from_user.name,update.message.chat_id)
 
     def stop(self, update, context):
@@ -85,7 +85,7 @@ class telegramHandler (threading.Thread):
         )
         return ConversationHandler.END
     
-    def stats(self, update, context):
+    def report(self, update, context):
         stats = databaseHandler.getStats(update.message.from_user.name)
         if stats == "":
             stats = "You need to follow OSM users by writing a /follow message first."
@@ -177,8 +177,8 @@ class telegramHandler (threading.Thread):
         unfollow_handler = CommandHandler('unfollow', self.unfollow, pass_args=True)
         self.dispatcher.add_handler(unfollow_handler)
 
-        stats_handler = CommandHandler('stats', self.stats, pass_args=True)
-        self.dispatcher.add_handler(stats_handler)
+        report_handler = CommandHandler('report', self.report, pass_args=True)
+        self.dispatcher.add_handler(report_handler)
 
         echo_handler = MessageHandler(Filters.text, self.echo)
         self.dispatcher.add_handler(echo_handler)
