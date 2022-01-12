@@ -106,7 +106,7 @@ class telegramHandler (threading.Thread):
         time = datetime.today().strftime("%Y-%m-01T00:00")
         if startdate != "":
             time = time + "," + startdate
-        osmApiCall = "https://www.openstreetmap.org/api/0.6/changesets?time=" + time + "&display_name="
+        osmApiCall = "https://www.openstreetmap.org/api/0.6/changesets?time=" + time + "&closed=true&display_name="
         response = requests.get(osmApiCall + user)
         result = ElementTree.fromstring(response.content)
         for changeset in result:
@@ -125,7 +125,7 @@ class telegramHandler (threading.Thread):
             count = {'changesets':0, 'changes':0}
             try:
                 count = self.queryOsmApi(user)
-                countBefore = databaseHandler.updateStats(user,str(count['changes']))
+                countBefore = databaseHandler.updateStats(user,str(count['changes']),str(count['changesets']))
             except:
                 logger.warning ("could not retrieve stats for: " + user)
             alertChanges = [300,1000]

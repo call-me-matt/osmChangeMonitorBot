@@ -19,7 +19,8 @@ def init():
     con.commit()
     db.execute("CREATE TABLE IF NOT EXISTS osmStats( \
                 user TINYTEXT PRIMARY KEY, \
-                changes TINYTEXT \
+                changes TINYTEXT, \
+                changesets TINYTEXT \
            )")
     con.commit()
     db.execute("CREATE TABLE IF NOT EXISTS watchers( \
@@ -106,22 +107,22 @@ def getStats(watcher):
     con = sqlite3.connect('registration.db')
     con.row_factory = sqlite3.Row
     db = con.cursor()
-    db.execute("SELECT user,changes FROM osmStats WHERE user in (SELECT osmUser from watchers WHERE telegramUser=?)",([watcher]))
+    db.execute("SELECT user,changes,changesets FROM osmStats WHERE user in (SELECT osmUser from watchers WHERE telegramUser=?)",([watcher]))
     entries = db.fetchall()
     con.close()
     result = ""
-    for (user,changes) in entries:
-        result += user + ": " + str(changes) + " \n"
+    for (user,changes, changesets) in entries:
+        result += user + ": " + str(changes) + " (" + str(changesets) + " sets) \n"
     return result
 
-def updateStats(user, counter):
-    logger.debug('updating stats for ' + user + ': ' + str(counter))
+def updateStats(user, changes, changesets):
+    logger.debug('updating stats for ' + user + ': ' + str(changes) + ' (' + str(changesets) + ' changesets)')
     con = sqlite3.connect('registration.db')
     con.row_factory = sqlite3.Row
     db = con.cursor()
     db.execute("SELECT changes FROM osmStats WHERE user=?",([user]))
     counterOld = db.fetchone()
-    db.execute("INSERT INTO osmStats (user, changes) VALUES(?,?) ON CONFLICT(user) DO UPDATE SET changes=?",([user,counter,counter]))
+    db.execute("INSERT INTO osmStats (user, changes, changesets) VALUES(?,?,?) ON CONFLICT(user) DO UPDATE SET (changes,changesets)=(?,?)",([user,changes,changesets,changes,changesets]))
     con.commit()
     con.close()
     if counterOld == None:
