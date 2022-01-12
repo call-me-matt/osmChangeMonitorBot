@@ -101,29 +101,40 @@ class telegramHandler (threading.Thread):
     def feedback(self, update, context):
         context.bot.send_message(chat_id=update.message.chat_id, text="For questions or feedback you can contact @KeinplanMAJORAN .")
 
+    def queryOsmApi(self, user, startdate=""):
+        count = {'changesets':0, 'changes':0}
+        time = datetime.today().strftime("%Y-%m-01T00:00")
+        if startdate != "":
+            time = time + "," + startdate
+        osmApiCall = "https://www.openstreetmap.org/api/0.6/changesets?time=" + time + "&display_name="
+        response = requests.get(osmApiCall + user)
+        result = ElementTree.fromstring(response.content)
+        for changeset in result:
+            count['changesets'] += 1
+            count['changes'] += int(changeset.attrib['changes_count'])
+        if count['changesets'] and count['changesets'] % 100 == 0:
+            count2 = self.queryOsmApi(user, startdate=changeset.attrib['created_at'])
+            count['changesets'] += count2['changesets']
+            count['changes'] += count2['changes']
+        return count
+
     def getOsmChanges(self, context: CallbackContext):
-        thisMonth = datetime.today().strftime("%Y-%m")
         osmUsers = databaseHandler.getOsmUsers()
-        osmApiCall = "https://www.openstreetmap.org/api/0.6/changesets?time=" + thisMonth + "-01T00:00&display_name="
-        response = ""
         for user in osmUsers:
             logger.debug("updating stats for " + user)
+            count = {'changesets':0, 'changes':0}
             try:
-                count = 0
-                response = requests.get(osmApiCall + user)
-                result = ElementTree.fromstring(response.content)
-                for changeset in result:
-                    count += int(changeset.attrib['changes_count'])
-                countBefore = databaseHandler.updateStats(user,str(count))
+                count = self.queryOsmApi(user)
+                countBefore = databaseHandler.updateStats(user,str(count['changes']))
             except:
                 logger.warning ("could not retrieve stats for: " + user)
             alertChanges = [300,1000]
             for number in alertChanges:
-                if int(countBefore) < number and count >= number:
-                    self.sendAlert(context, user,number)
+                if int(countBefore) < number and count['changes'] >= number:
+                    self.sendAlert(context, user, number)
 
     def sendAlert(self, context, user, number):
-        alert = "🥳 " + user + " has achieved " + str(number) + " changes!"
+        alert = "🥳 " + user + " has achieved more than " + str(number) + " changes!"
         logger.info(alert)
         chatIds = databaseHandler.getWatcher(user)
         logger.warning(chatIds)
