@@ -47,7 +47,7 @@ class telegramHandler (threading.Thread):
 
     def follow(self, update, context):
         update.message.reply_text(
-            'Who do you want to follow? Please tell me the OSM user name.'
+            'OK, you want to add a follower. Please tell me now the OSM user name:'
         )
         return STATE_FOLLOWS
     
@@ -64,7 +64,7 @@ class telegramHandler (threading.Thread):
         
     def unfollow(self, update, context):
         update.message.reply_text(
-            'Who do you want to unfollow? Please tell me the OSM user name.'
+            'OK, you want to remove a follower. Please tell me now the OSM user name:'
         )
         return STATE_UNFOLLOWS
 
@@ -123,7 +123,7 @@ class telegramHandler (threading.Thread):
                     self.sendAlert(context, user,number)
 
     def sendAlert(self, context, user, number):
-        alert = user + " has achieved " + str(number) + " changes!"
+        alert = "🥳 " + user + " has achieved " + str(number) + " changes!"
         logger.info(alert)
         chatIds = databaseHandler.getWatcher(user)
         logger.warning(chatIds)
