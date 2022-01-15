@@ -19,7 +19,7 @@ from telegram.ext import MessageHandler, Filters
 from telegram.ext import JobQueue
 
 TOKEN = os.environ['TELEGRAM_BOT_TOKEN']
-WATCHDOG_INTERVAL_MIN = 12*60
+WATCHDOG_INTERVAL_MIN = 4*60
 
 STATE_FOLLOWS, STATE_UNFOLLOWS = range(2)
 
@@ -86,6 +86,9 @@ class telegramHandler (threading.Thread):
         return ConversationHandler.END
     
     def report(self, update, context):
+        context.bot.send_message(chat_id=update.message.chat_id, text="Hold on, I am retrieving latest numbers...")
+        osmUsers = databaseHandler.getOsmUsers(update.message.from_user.name)
+        self.getOsmChanges(osmUsers)
         stats = databaseHandler.getStats(update.message.from_user.name)
         if stats == "":
             stats = "You need to follow OSM users by writing a /follow message first."
@@ -118,11 +121,11 @@ class telegramHandler (threading.Thread):
             count['changes'] += count2['changes']
         return count
 
-    def getOsmChanges(self, context: CallbackContext):
-        osmUsers = databaseHandler.getOsmUsers()
+    def getOsmChanges(self, context: CallbackContext, osmUsers=databaseHandler.getOsmUsers()):
         for user in osmUsers:
             logger.debug("updating stats for " + user)
             count = {'changesets':0, 'changes':0}
+            countBefore = 0
             try:
                 count = self.queryOsmApi(user)
                 countBefore = databaseHandler.updateStats(user,str(count['changes']),str(count['changesets']))
@@ -130,7 +133,7 @@ class telegramHandler (threading.Thread):
                 logger.warning ("could not retrieve stats for: " + user)
             alertChanges = [300,1000,5000,10000]
             for number in alertChanges:
-                if int(countBefore) < number and count['changes'] >= number:
+                if int(countBefore) > 0 and int(countBefore) < number and count['changes'] >= number:
                     self.sendAlert(context, user, number)
 
     def sendAlert(self, context, user, number):
