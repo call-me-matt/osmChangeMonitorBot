@@ -140,9 +140,7 @@ class telegramHandler (threading.Thread):
         alert = "🥳 " + user + " has achieved more than " + str(number) + " changes!"
         logger.info(alert)
         chatIds = databaseHandler.getWatcher(user)
-        logger.warning(chatIds)
         for chatId in chatIds:
-            logger.warning(chatId)
             context.bot.send_message(chat_id=chatId, text=alert)
 
     def __init__(self):
