@@ -23,6 +23,13 @@ WATCHDOG_INTERVAL_MIN = 4*60
 
 STATE_FOLLOWS, STATE_UNFOLLOWS = range(2)
 
+REQUEST_HEADERS = {
+    'User-Agent': 'osmChangesetBot https://t.me/osmChangesetBot',
+    'From': 'https://github.com/call-me-matt/osmChangeMonitorBot'
+}
+
+response = requests.get(url, headers=headers)
+
 logging.basicConfig(format='[%(levelname)s] %(name)s: %(message)s',level=logging.DEBUG)
 logger = logging.getLogger("telegram-handler")
 
@@ -38,7 +45,7 @@ class telegramHandler (threading.Thread):
 
     def check_input(self, userInput):
         # check its a valid OSM User
-        request = requests.get('https://www.openstreetmap.org/api/0.6/changesets?display_name=' + userInput)
+        request = requests.get('https://www.openstreetmap.org/api/0.6/changesets?display_name=' + userInput, headers=REQUEST_HEADERS)
         if request.status_code != 200:
             logger.warning(userInput + ' seems not a valid OSM user')
             return False
@@ -110,7 +117,7 @@ class telegramHandler (threading.Thread):
         if startdate != "":
             time = time + "," + startdate
         osmApiCall = "https://www.openstreetmap.org/api/0.6/changesets?time=" + time + "&closed=true&display_name="
-        response = requests.get(osmApiCall + user)
+        response = requests.get(osmApiCall + user, headers=REQUEST_HEADERS)
         result = ElementTree.fromstring(response.content)
         for changeset in result:
             count['changesets'] += 1
