@@ -5,7 +5,7 @@ import sqlite3
 import logging
 import datetime
 
-logging.basicConfig(format='[%(levelname)s] %(name)s: %(message)s',level=logging.INFO)
+logging.basicConfig(format='[%(levelname)s] %(name)s: %(message)s',level=logging.DEBUG)
 logger = logging.getLogger("database-handler")
 
 def init():
@@ -100,6 +100,7 @@ def getOsmUsers(telegramUser=None):
     result = []
     for entry in entries:
         result.append(entry['osmUser'])
+    logger.debug('Users: ' + str(result))
     return result
     
 def getStats(watcher):

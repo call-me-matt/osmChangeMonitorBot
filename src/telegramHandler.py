@@ -28,8 +28,6 @@ REQUEST_HEADERS = {
     'From': 'https://github.com/call-me-matt/osmChangeMonitorBot'
 }
 
-response = requests.get(url, headers=headers)
-
 logging.basicConfig(format='[%(levelname)s] %(name)s: %(message)s',level=logging.DEBUG)
 logger = logging.getLogger("telegram-handler")
 
@@ -64,7 +62,7 @@ class telegramHandler (threading.Thread):
                 databaseHandler.addUser(update.message.from_user.name,update.message.chat_id)
             context.bot.send_message(chat_id=update.message.chat_id, text="Allright. I will add " + update.message.text + " to the list.")
             databaseHandler.addWatcher(update.message.from_user.name, str(update.message.text))
-            self.updater.job_queue.run_once(self.getOsmChanges, when=1)
+            self.report(update, context)
             return ConversationHandler.END
         else:
             context.bot.send_message(chat_id=update.message.chat_id, text="Sorry, I could not find this OSM user. Please note that capitalization is important.")
@@ -95,7 +93,7 @@ class telegramHandler (threading.Thread):
     def report(self, update, context):
         context.bot.send_message(chat_id=update.message.chat_id, text="Hold on, I am retrieving latest numbers...")
         osmUsers = databaseHandler.getOsmUsers(update.message.from_user.name)
-        self.getOsmChanges(osmUsers)
+        self.getOsmChanges(context, osmUsers)
         stats = databaseHandler.getStats(update.message.from_user.name)
         if stats == "":
             stats = "You need to follow OSM users by writing a /follow message first."
