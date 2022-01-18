@@ -63,9 +63,9 @@ class telegramHandler (threading.Thread):
             context.bot.send_message(chat_id=update.message.chat_id, text="Allright. I will add " + update.message.text + " to the list.")
             databaseHandler.addWatcher(update.message.from_user.name, str(update.message.text))
             self.report(update, context)
-            return ConversationHandler.END
         else:
             context.bot.send_message(chat_id=update.message.chat_id, text="Sorry, I could not find this OSM user. Please note that capitalization is important.")
+        return ConversationHandler.END
         
     def unfollow(self, update, context):
         update.message.reply_text(
