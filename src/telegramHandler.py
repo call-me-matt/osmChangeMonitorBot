@@ -6,6 +6,7 @@ import threading
 import time
 import logging
 import requests
+import gettext
 from datetime import datetime, time
 from xml.etree import ElementTree
 
@@ -28,17 +29,25 @@ REQUEST_HEADERS = {
     'From': 'https://github.com/call-me-matt/osmChangeMonitorBot'
 }
 
+# i18n
+def get_translator(lang: str = "en"):
+    trans = gettext.translation('osm-telegram-bot', localedir='./locales', languages=(lang,), fallback=True)
+    return trans.gettext
+
+
 logging.basicConfig(format='[%(levelname)s] %(name)s: %(message)s',level=logging.DEBUG)
 logger = logging.getLogger("telegram-handler")
 
 class telegramHandler (threading.Thread):
 
     def register(self, update, context):
-        context.bot.send_message(chat_id=update.message.chat_id, text="Hello, " + update.message.from_user.first_name + ". I can request the number of changes for OSM users. Just send me a message saying /report. Add OSM users by writing a /follow message, or remove them with /unfollow")
-        databaseHandler.addUser(update.message.from_user.name,update.message.chat_id)
+        _ = get_translator(update.message.from_user.language_code)
+        context.bot.send_message(chat_id=update.message.chat_id, text=(_("Hello, %s. I can request the number of changes for OSM users. Just send me a message saying /report. Add OSM users by writing a /follow message, or remove them with /unfollow") % (update.message.from_user.first_name)))
+        databaseHandler.addUser(update.message.from_user.name, update.message.chat_id, update.message.from_user.language_code)
 
     def stop(self, update, context):
-        context.bot.send_message(chat_id=update.message.chat_id, text="Stopping. To reactivate, just send me a /start")
+        _ = get_translator(update.message.from_user.language_code)
+        context.bot.send_message(chat_id=update.message.chat_id, text=_("Stopping. To reactivate, just send me a /start"))
         databaseHandler.removeUser(update.message.from_user.name)
 
     def check_input(self, userInput):
@@ -51,63 +60,69 @@ class telegramHandler (threading.Thread):
         return True
 
     def follow(self, update, context):
-        update.message.reply_text(
-            'OK, you want to add a follower. Please tell me now the OSM user name:'
-        )
+        _ = get_translator(update.message.from_user.language_code)
+        update.message.reply_text(_('OK, you want to add a follower. Please tell me now the OSM user name:'))
         return STATE_FOLLOWS
     
     def followUser(self, update, context):
+        _ = get_translator(update.message.from_user.language_code)
         if (self.check_input(update.message.text)):
             if not databaseHandler.isUserRegistered(update.message.from_user.name):
-                databaseHandler.addUser(update.message.from_user.name,update.message.chat_id)
-            context.bot.send_message(chat_id=update.message.chat_id, text="Allright. I will add " + update.message.text + " to the list.")
+                databaseHandler.addUser(update.message.from_user.name,update.message.chat_id, update.message.from_user.language_code)
+            context.bot.send_message(chat_id=update.message.chat_id, text=(_("Allright. I will add %s to the list.") % (update.message.text)))
             databaseHandler.addWatcher(update.message.from_user.name, str(update.message.text))
             self.report(update, context)
         else:
-            context.bot.send_message(chat_id=update.message.chat_id, text="Sorry, I could not find this OSM user. Please note that capitalization is important.")
+            context.bot.send_message(chat_id=update.message.chat_id, text=_("Sorry, I could not find this OSM user. Please note that capitalization is important."))
         return ConversationHandler.END
         
     def unfollow(self, update, context):
-        update.message.reply_text(
-            'OK, you want to remove a follower. Please tell me now the OSM user name:'
-        )
+        _ = get_translator(update.message.from_user.language_code)
+        update.message.reply_text('OK, you want to remove a follower. Please tell me now the OSM user name:')
         return STATE_UNFOLLOWS
 
     def unfollowUser(self, update, context):
+        _ = get_translator(update.message.from_user.language_code)
         if update.message.text in databaseHandler.getOsmUsers(update.message.from_user.name):
-            context.bot.send_message(chat_id=update.message.chat_id, text="Allright. I will remove " + update.message.text + " from the list.")
+            context.bot.send_message(chat_id=update.message.chat_id, text=(_("Allright. I will remove %s from the list.") % (update.message.text)))
             databaseHandler.removeWatcher(update.message.from_user.name, str(update.message.text))
         else:
-            context.bot.send_message(chat_id=update.message.chat_id, text="Sorry, this seems not to be a Username from your list.")
+            context.bot.send_message(chat_id=update.message.chat_id, text=(_("Sorry, this seems not to be a Username from your list.")))
         return ConversationHandler.END
 
     def cancel(self, update, context):
         """Cancels and ends the conversation."""
+        _ = get_translator(update.message.from_user.language_code)
         user = update.message.from_user
-        logger.info("User %s canceled the conversation.", user.first_name)
+        logger.info("User " + user.first_name + " canceled the conversation.")
         update.message.reply_text(
-            'Bye!', reply_markup=ReplyKeyboardRemove()
+            _('Bye!'), reply_markup=ReplyKeyboardRemove()
         )
         return ConversationHandler.END
     
     def report(self, update, context):
-        context.bot.send_message(chat_id=update.message.chat_id, text="Hold on, I am retrieving latest numbers...")
+        _ = get_translator(update.message.from_user.language_code)
+        context.bot.send_message(chat_id=update.message.chat_id, text=_("Hold on, I am retrieving latest numbers..."))
         osmUsers = databaseHandler.getOsmUsers(update.message.from_user.name)
         self.getOsmChanges(context, osmUsers)
         stats = databaseHandler.getStats(update.message.from_user.name)
         if stats == "":
-            stats = "You need to follow OSM users by writing a /follow message first."
+            stats = _("You need to follow OSM users by writing a /follow message first.")
         context.bot.send_message(chat_id=update.message.chat_id, text=str(stats))
+        # FIXME: MIGRATION
+        databaseHandler.migrate(update.message.from_user.name, update.message.from_user.language_code)
 
     def echo(self, update, context):
+        _ = get_translator(update.message.from_user.language_code)
         if not databaseHandler.isUserRegistered(update.message.from_user.name):
             logger.warning('unknown user')
             self.register(update, context)
         else:
-            context.bot.send_message(chat_id=update.message.chat_id, text="🤓🙄 Please don't disturb me. I am observing OSM stats.")
+            context.bot.send_message(chat_id=update.message.chat_id, text=_("🤓🙄 Please don't disturb me. I am observing OSM stats."))
 
     def feedback(self, update, context):
-        context.bot.send_message(chat_id=update.message.chat_id, text="For questions or feedback you can contact @KeinplanMAJORAN .")
+        _ = get_translator(update.message.from_user.language_code)
+        context.bot.send_message(chat_id=update.message.chat_id, text=_("For questions or feedback you can contact @KeinplanMAJORAN ."))
 
     def queryOsmApi(self, user, startdate=""):
         count = {'changesets':0, 'changes':0}
@@ -142,10 +157,11 @@ class telegramHandler (threading.Thread):
                     self.sendAlert(context, user, number)
 
     def sendAlert(self, context, user, number):
-        alert = "🥳 " + user + " has achieved more than " + str(number) + " changes!"
-        logger.info(alert)
+        logger.info(("%s has achieved more than %s changes!") % (user, str(number)))
         chatIds = databaseHandler.getWatcher(user)
-        for chatId in chatIds:
+        for chatId,lang in chatIds:
+            _ = get_translator(lang)
+            alert = (_("🥳 %s has achieved more than %s changes!") % (user, str(number)))
             context.bot.send_message(chat_id=chatId, text=alert)
 
     def __init__(self):
@@ -163,7 +179,7 @@ class telegramHandler (threading.Thread):
         databaseHandler.init()
 
         logger.debug('creating stats-watchdog')
-        watchdog = self.updater.job_queue.run_repeating(self.getOsmChanges, interval=WATCHDOG_INTERVAL_MIN*60, first=5)
+        watchdog = self.updater.job_queue.run_repeating(self.getOsmChanges, interval=WATCHDOG_INTERVAL_MIN*60, first=30)
         #watchdog = self.updater.job_queue.run_daily(self.getOsmChanges, time(hour=12, minute=00))
 
     def run(self):

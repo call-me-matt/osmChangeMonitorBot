@@ -14,7 +14,8 @@ def init():
     db = con.cursor()
     db.execute("CREATE TABLE IF NOT EXISTS users( \
                     user TINYTEXT PRIMARY KEY, \
-                    chatid TINYTEXT \
+                    chatid TINYTEXT, \
+                    language TINYTEXT \
                )")
     con.commit()
     db.execute("CREATE TABLE IF NOT EXISTS osmStats( \
@@ -30,11 +31,11 @@ def init():
     con.commit()
     con.close()
 
-def addUser(username, chatid):
+def addUser(username, chatid, lang):
     logger.info("adding telegram user " + username + " to database")
     con = sqlite3.connect('registration.db')
     db = con.cursor()
-    db.execute("INSERT OR IGNORE INTO users (user,chatid) VALUES (?,?)",([username,chatid]))
+    db.execute("INSERT OR IGNORE INTO users (user,chatid,language) VALUES (?,?,?)",([username,chatid,lang]))
     con.commit()
     con.close()
         
@@ -70,12 +71,12 @@ def addWatcher(telegramUser, osmUser):
 def getWatcher(osmUser):
     con = sqlite3.connect('registration.db')
     db = con.cursor()
-    db.execute("SELECT chatid FROM users WHERE user in (SELECT DISTINCT telegramUser FROM watchers WHERE osmUser=?)",([osmUser]))
+    db.execute("SELECT chatid,language FROM users WHERE user in (SELECT DISTINCT telegramUser FROM watchers WHERE osmUser=?)",([osmUser]))
     entries = db.fetchall()
     con.close()
     result = []
     for entry in entries:
-        result.append(entry[0])
+        result.append(entry)
     return result
 
 def removeWatcher(telegramUser, osmUser):
@@ -131,4 +132,13 @@ def updateStats(user, changes, changesets):
     else:
         return counterOld[0]
 
+def migrate(user, lang):
+    #FIXME: this function stores the user language if registered before i18n was introduced.
+    logger.debug('migrating ' + user + ': ' + str(lang))
+    con = sqlite3.connect('registration.db')
+    con.row_factory = sqlite3.Row
+    db = con.cursor()
+    db.execute("UPDATE users SET language=? WHERE USER=?",([lang, user]))
+    con.commit()
+    con.close()
 
