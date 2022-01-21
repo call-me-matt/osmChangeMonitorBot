@@ -151,10 +151,11 @@ class telegramHandler (threading.Thread):
                 countBefore = databaseHandler.updateStats(user,str(count['changes']),str(count['changesets']))
             except:
                 logger.warning ("could not retrieve stats for: " + user)
-            alertChanges = [300,1000,5000,10000]
+            alertChanges = [100000,10000,5000,1000,300]
             for number in alertChanges:
                 if int(countBefore) > 0 and int(countBefore) < number and count['changes'] >= number:
                     self.sendAlert(context, user, number)
+                    break
 
     def sendAlert(self, context, user, number):
         logger.info(("%s has achieved more than %s changes!") % (user, str(number)))
