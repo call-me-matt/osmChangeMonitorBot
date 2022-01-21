@@ -89,15 +89,20 @@ def removeWatcher(telegramUser, osmUser):
     con.close()
 
 def getOsmUsers(telegramUser=None):
-    con = sqlite3.connect('registration.db')
-    con.row_factory = sqlite3.Row
-    db = con.cursor()
-    if telegramUser:
-        db.execute("SELECT DISTINCT osmUser from watchers WHERE telegramUser=?",([telegramUser]))
-    else:
-        db.execute("SELECT DISTINCT osmUser from watchers")
-    entries = db.fetchall()
-    con.close()
+    entries=[]
+    try:
+        con = sqlite3.connect('registration.db')
+        con.row_factory = sqlite3.Row
+        db = con.cursor()
+        if telegramUser:
+            db.execute("SELECT DISTINCT osmUser from watchers WHERE telegramUser=?",([telegramUser]))
+        else:
+            db.execute("SELECT DISTINCT osmUser from watchers")
+        entries = db.fetchall()
+    except:
+        logger.warning("database not found")
+    finally:
+        con.close()
     result = []
     for entry in entries:
         result.append(entry['osmUser'])
