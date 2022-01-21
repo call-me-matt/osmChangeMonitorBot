@@ -1,0 +1,9 @@
+# how to generate the po-template file:
+
+in src-dir:
+ `pygettext3 -d osm-telegram-bot -o locales/osm-telegram-bot.pot telegramHandler.py`
+
+# how compile a language file (from .po to .mo):
+
+in LC_MESSAGES-dir:
+ `msgfmt -o osm-telegram-bot.mo osm-telegram-bot`

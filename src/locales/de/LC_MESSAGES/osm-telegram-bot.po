@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2022-01-18 22:11+0100\n"
+"POT-Creation-Date: 2022-01-21 14:38+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -15,55 +15,59 @@ msgstr ""
 "Generated-By: pygettext.py 1.5\n"
 
 
-#: telegramHandler.py:41
+#: telegramHandler.py:45
 msgid "Hello, %s. I can request the number of changes for OSM users. Just send me a message saying /report. Add OSM users by writing a /follow message, or remove them with /unfollow"
 msgstr "Hallo %s. Ich kann die Anzahl der monatlichen OSM Änderungen anfragen. Sende dafür einfach eine Nachricht mit /report. Füge OSM Benutzer hinzu, indem du /follow schreibst und entferne sie mit dem /unfollow Kommando."
 
-#: telegramHandler.py:45
+#: telegramHandler.py:50
 msgid "Stopping. To reactivate, just send me a /start"
 msgstr "Beendet. Zum Reaktivieren, sende eine Nachricht mit /start"
 
-#: telegramHandler.py:58
+#: telegramHandler.py:64
 msgid "OK, you want to add a follower. Please tell me now the OSM user name:"
 msgstr "OK, du möchtest einen Benutzer hinzufügen. Bitte schreibe mir nun den OSM Benutzernamen:"
 
-#: telegramHandler.py:65
+#: telegramHandler.py:72
 msgid "Allright. I will add %s to the list."
 msgstr "Alles klar, ich habe %s deiner Liste hinzugefügt."
 
-#: telegramHandler.py:69
+#: telegramHandler.py:76
 msgid "Sorry, I could not find this OSM user. Please note that capitalization is important."
 msgstr "Verzeihung, diesen OSM Benutzernamen konnte ich nicht finden. Beachte, dass Groß- und Kleinschreibung wichtig ist."
 
-#: telegramHandler.py:80
+#: telegramHandler.py:81
+msgid "OK, you want to remove a follower. Please tell me now the OSM user name:"
+msgstr "OK, du möchtest einen Benutzer von der Liste streichen. Bitte schreibe mir nun den OSM Benutzernamen:"
+
+#: telegramHandler.py:87
 msgid "Allright. I will remove %s from the list."
 msgstr "Alles klar, ich habe %s aus deiner Liste entfernt."
 
-#: telegramHandler.py:83
+#: telegramHandler.py:90
 msgid "Sorry, this seems not to be a Username from your list."
 msgstr "Verzeihung, das scheint kein Benutzer von deiner Liste zu sein."
 
-#: telegramHandler.py:91
+#: telegramHandler.py:99
 msgid "Bye!"
 msgstr "Tschüss!"
 
-#: telegramHandler.py:96
+#: telegramHandler.py:105
 msgid "Hold on, I am retrieving latest numbers..."
 msgstr "Einen Moment, ich aktualisiere die Statistiken..."
 
-#: telegramHandler.py:101
+#: telegramHandler.py:110
 msgid "You need to follow OSM users by writing a /follow message first."
 msgstr "Du musst OSM Benutzer hinzufügen, indem du eine /follow Nachricht schreibst."
 
-#: telegramHandler.py:109
+#: telegramHandler.py:119
 msgid "🤓🙄 Please don't disturb me. I am observing OSM stats."
 msgstr "🤓🙄 Bitte nicht stören, ich verfolge die OSM Statistiken."
 
-#: telegramHandler.py:112
-msgid "For questions or feedback you can contact @KeinplanMAJORAN."
+#: telegramHandler.py:123
+msgid "For questions or feedback you can contact @KeinplanMAJORAN ."
 msgstr "Bei Fragen oder Feedback kannst du @KeinplanMAJORAN kontaktieren."
 
-#: telegramHandler.py:147
+#: telegramHandler.py:163
 msgid "🥳 %s has achieved more than %s changes!"
 msgstr "🥳 %s hat mehr als %s Änderungen erreicht!"
 

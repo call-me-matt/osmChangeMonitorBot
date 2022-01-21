@@ -78,7 +78,7 @@ class telegramHandler (threading.Thread):
         
     def unfollow(self, update, context):
         _ = get_translator(update.message.from_user.language_code)
-        update.message.reply_text('OK, you want to remove a follower. Please tell me now the OSM user name:')
+        update.message.reply_text(_('OK, you want to remove a follower. Please tell me now the OSM user name:'))
         return STATE_UNFOLLOWS
 
     def unfollowUser(self, update, context):
