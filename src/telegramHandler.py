@@ -109,8 +109,6 @@ class telegramHandler (threading.Thread):
         if stats == "":
             stats = _("You need to follow OSM users by writing a /follow message first.")
         context.bot.send_message(chat_id=update.message.chat_id, text=str(stats))
-        # FIXME: MIGRATION
-        databaseHandler.migrate(update.message.from_user.name, update.message.from_user.language_code)
 
     def echo(self, update, context):
         _ = get_translator(update.message.from_user.language_code)

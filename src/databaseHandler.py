@@ -137,13 +137,4 @@ def updateStats(user, changes, changesets):
     else:
         return counterOld[0]
 
-def migrate(user, lang):
-    #FIXME: this function stores the user language if registered before i18n was introduced.
-    logger.debug('migrating ' + user + ': ' + str(lang))
-    con = sqlite3.connect('registration.db')
-    con.row_factory = sqlite3.Row
-    db = con.cursor()
-    db.execute("UPDATE users SET language=? WHERE USER=?",([lang, user]))
-    con.commit()
-    con.close()
 
