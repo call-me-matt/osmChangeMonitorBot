@@ -5,7 +5,7 @@ import sqlite3
 import logging
 import datetime
 
-logging.basicConfig(format='[%(levelname)s] %(name)s: %(message)s',level=logging.DEBUG)
+logging.basicConfig(format='[%(levelname)s] %(name)s: %(message)s',level=logging.INFO)
 logger = logging.getLogger("database-handler")
 
 def init():
@@ -71,7 +71,7 @@ def addWatcher(telegramUser, osmUser):
 def getWatcher(osmUser):
     con = sqlite3.connect('registration.db')
     db = con.cursor()
-    db.execute("SELECT chatid,language FROM users WHERE user in (SELECT DISTINCT telegramUser FROM watchers WHERE osmUser=?)",([osmUser]))
+    db.execute("SELECT user,chatid,language FROM users WHERE user in (SELECT DISTINCT telegramUser FROM watchers WHERE osmUser=?)",([osmUser]))
     entries = db.fetchall()
     con.close()
     result = []

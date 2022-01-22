@@ -35,7 +35,7 @@ def get_translator(lang: str = "en"):
     return trans.gettext
 
 
-logging.basicConfig(format='[%(levelname)s] %(name)s: %(message)s',level=logging.DEBUG)
+logging.basicConfig(format='[%(levelname)s] %(name)s: %(message)s',level=logging.INFO)
 logger = logging.getLogger("telegram-handler")
 
 class telegramHandler (threading.Thread):
@@ -155,13 +155,17 @@ class telegramHandler (threading.Thread):
                     self.sendAlert(context, user, number)
                     break
 
-    def sendAlert(self, context, user, number):
-        logger.info(("%s has achieved more than %s changes!") % (user, str(number)))
-        chatIds = databaseHandler.getWatcher(user)
-        for chatId,lang in chatIds:
+    def sendAlert(self, context, osmUser, number):
+        logger.info(("%s has achieved more than %s changes!") % (osmUser, str(number)))
+        telegramFollower = databaseHandler.getWatcher(osmUser)
+        for telegramUser,chatId,lang in telegramFollower:
             _ = get_translator(lang)
-            alert = (_("🥳 %s has achieved more than %s changes!") % (user, str(number)))
-            context.bot.send_message(chat_id=chatId, text=alert)
+            alert = (_("🥳 %s has achieved more than %s changes!") % (osmUser, str(number)))
+            try:
+                context.bot.send_message(chat_id=chatId, text=alert)
+            except:
+                logger.warning("%s blocked chatId %s", telegramUser, chatId)
+                databaseHandler.removeUser(telegramUser)
 
     def __init__(self):
         global TOKEN
