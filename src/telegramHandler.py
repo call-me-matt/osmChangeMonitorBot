@@ -3,7 +3,6 @@
 
 import os
 import threading
-import time
 import logging
 import requests
 import gettext
@@ -13,14 +12,13 @@ from xml.etree import ElementTree
 import databaseHandler
 
 from telegram.ext import CallbackContext
-
 from telegram.ext import Updater
 from telegram.ext import CommandHandler, ConversationHandler
 from telegram.ext import MessageHandler, Filters
-from telegram.ext import JobQueue
+from telegram import error
 
 TOKEN = os.environ['TELEGRAM_BOT_TOKEN']
-WATCHDOG_INTERVAL_MIN = 4*60
+WATCHDOG_INTERVAL_MIN = 6*60
 
 STATE_FOLLOWS, STATE_UNFOLLOWS = range(2)
 
@@ -163,9 +161,13 @@ class telegramHandler (threading.Thread):
             alert = (_("🥳 %s has achieved more than %s changes!") % (osmUser, str(number)))
             try:
                 context.bot.send_message(chat_id=chatId, text=alert)
-            except:
-                logger.warning("%s blocked chatId %s", telegramUser, chatId)
-                databaseHandler.removeUser(telegramUser)
+            except error.Unauthorized as e:
+                if e.description == "Forbidden: bot was blocked by the user":
+                    logger.warning("%s blocked chatId %s", telegramUser, chatId)
+                    databaseHandler.removeUser(telegramUser)
+            except Exception as e:
+                logger.warning("Unexpected error while sending alert: %s", e.description)
+                logger.debug(e)
 
     def __init__(self):
         global TOKEN
